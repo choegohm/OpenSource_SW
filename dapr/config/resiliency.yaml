@@ -18,3 +18,9 @@ spec:
         interval: 10s
         timeout: 30s
         trip: consecutiveFailures > 3
+  targets:
+    apps:
+      workspace-app:
+        retry: defaultRetry
+        timeout: defaultTimeout
+        circuitBreaker: defaultCB

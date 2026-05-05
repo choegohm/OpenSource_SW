@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: devspace-pipeline
+  namespace: argo
+spec:
+  entrypoint: main-pipeline
+  arguments:
+    parameters:
+      - name: userId
+        value: "user1"
+      - name: image
+        value: "ubuntu:22.04"
+      - name: cpu
+        value: "2"
+      - name: memory
+        value: "2Gi"
+
+  templates:
+    - name: main-pipeline
+      steps:
+        - - name: helm-deploy
+            template: helm-step
+        - - name: dapr-connect
+            template: dapr-step
+        - - name: return-url
+            template: url-step
+
+    - name: helm-step
+      script:
+        image: alpine/helm:latest
+        command: [sh]
+        source: |
+          mkdir -p /tmp/helm-chart
+          cp /helm-chart/* /tmp/helm-chart/
+          mkdir -p /tmp/helm-chart/templates
+          cp /helm-templates/* /tmp/helm-chart/templates/
+          helm upgrade --install             ws-{{workflow.parameters.userId}}             /tmp/helm-chart             --namespace workspaces             --set userId={{workflow.parameters.userId}}             --set image={{workflow.parameters.image}}             --set cpu={{workflow.parameters.cpu}}             --set memory={{workflow.parameters.memory}}             --create-namespace             --wait             --timeout 120s
+        volumeMounts:
+          - name: helm-chart
+            mountPath: /helm-chart
+          - name: helm-templates
+            mountPath: /helm-templates
+
+    - name: dapr-step
+      script:
+        image: bitnami/kubectl:latest
+        command: [sh]
+        source: |
+          echo "Dapr components already applied"
+          kubectl get components -n workspaces
+
+    - name: url-step
+      script:
+        image: alpine:latest
+        command: [sh]
+        source: |
+          echo "접속 URL: ws-{{workflow.parameters.userId}}.workspaces.svc.cluster.local"
+
+  volumes:
+    - name: helm-chart
+      configMap:
+        name: helm-chart-workspace
+    - name: helm-templates
+      configMap:
+        name: helm-chart-templates
