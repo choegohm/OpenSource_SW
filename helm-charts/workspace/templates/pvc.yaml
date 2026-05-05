@@ -1,0 +1,11 @@
+apiVersion: v2
+kind: PersistentVolumeClaim
+metadata:
+  name: ws-{{ .Release.Name }}-data
+  namespace: workspaces
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

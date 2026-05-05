@@ -1,0 +1,20 @@
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: workspace-resiliency
+  namespace: workspaces
+spec:
+  policies:
+    retries:
+      defaultRetry:
+        policy: constant
+        duration: 5s
+        maxRetries: 3
+    timeouts:
+      defaultTimeout: 30s
+    circuitBreakers:
+      defaultCB:
+        maxRequests: 1
+        interval: 10s
+        timeout: 30s
+        trip: consecutiveFailures > 3

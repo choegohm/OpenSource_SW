@@ -1,0 +1,16 @@
+image: "ubuntu:22.04"
+
+cpu: "2"
+memeory: "2Gi"
+gpu: false
+gpuCount: 0
+
+ports:
+  - 8080
+
+packages: []
+
+userId: ""
+
+knative:
+  idleTimeout: "10m"

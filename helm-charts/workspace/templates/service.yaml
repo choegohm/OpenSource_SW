@@ -1,0 +1,35 @@
+apiVersion: v2
+Kind: Service
+metadata:
+  name: ws-{{ .Release.Name }}
+  namespace: workspaces
+  annotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "ws-{{ .Release.Name }}"
+    dapr.io/app-port: "8080"
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/scale-to-zero-pod-retention-period: {{ .Values.knative.idleTimeout }}
+    spec:
+      containers:
+      - image: {{ .Values.image }}
+        resources:
+          requests:
+            cpu: {{ .Values.cpu }}
+            memory: {{ .Values.memory }}
+            {{- if .Values.gpu }}
+            nvidia.com/gpu: {{ .Values.gpuCount }}
+            {{- end }}
+        ports:
+        {{- range .Values.ports }}
+        - containerPort: {{ . }}
+        {{- end }}
+        volumeMounts:
+        - name: workspace-data
+          mountPath: /workspace
+      volumes:
+      - name: workspace-data
+        persistentVolumeClaim:
+          claimName: ws-{{ .Release.Name }}-data

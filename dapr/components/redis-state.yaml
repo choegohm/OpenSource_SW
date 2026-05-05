@@ -1,0 +1,13 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: workspace-state
+  namespace: workspaces
+spec:
+  type: state.redis
+  version: v1
+  metadata:
+  - name: redisHost
+    value: "redis-master.workspaces.svc:6379"
+  - name: redisPassword
+    value: ""
