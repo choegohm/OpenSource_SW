@@ -1,0 +1,10 @@
+[
+  {
+    "input": "PyTorch 2.1 CUDA GPU 환경 만들어줘",
+    "output": "{\"image\":\"pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime\",\"cpu\":\"4\",\"memory\":\"16Gi\",\"gpu\":true,\"gpuCount\":1,\"ports\":[8888],\"packages\":[\"jupyter\",\"matplotlib\"]}"
+  },
+  {
+    "input": "Node.js 20 백엔드 개발 환경",
+    "output": "{\"image\":\"node:20\",\"cpu\":\"2\",\"memory\":\"4Gi\",\"gpu\":false,\"gpuCount\":0,\"ports\":[3000],\"packages\":[]}"
+  }
+]
