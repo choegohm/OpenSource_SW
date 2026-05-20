@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevSpace AI</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: sans-serif; background: #f5f5f5; color: #1a1a1a; padding: 2rem; }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 1.5rem; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 4px; }
+  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+  label { font-size: 13px; color: #666; display: block; margin-bottom: 6px; }
+  input[type="text"], textarea { width: 100%; padding: 8px 12px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 14px; font-family: sans-serif; background: #fff; color: #1a1a1a; margin-bottom: 12px; }
+  textarea { height: 80px; resize: vertical; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .preset-btn { font-size: 12px; padding: 4px 10px; border: 1px solid #e5e5e5; border-radius: 8px; background: #fff; cursor: pointer; color: #1a1a1a; }
+  .preset-btn:hover { background: #f5f5f5; }
+  .submit-btn { width: 100%; padding: 10px; border: 1px solid #e5e5e5; border-radius: 8px; background: #fff; font-size: 14px; cursor: pointer; color: #1a1a1a; }
+  .submit-btn:hover { background: #f5f5f5; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .loading { display: none; text-align: center; padding: 2rem; }
+  .loading-dot { width: 8px; height: 8px; background: #666; border-radius: 50%; margin: 0 auto 12px; animation: pulse 1s infinite; }
+  .loading-text { font-size: 14px; color: #666; }
+  .result { display: none; }
+  .result-title { font-size: 13px; color: #666; margin-bottom: 12px; }
+  .success-header { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
+  .success-icon { font-size: 18px; color: #1d9e75; }
+  .success-label { font-size: 15px; font-weight: 500; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 1rem; }
+  .metric { background: #f5f5f5; border-radius: 8px; padding: 12px; }
+  .metric-label { font-size: 11px; color: #666; margin-bottom: 4px; }
+  .metric-value { font-size: 13px; font-weight: 500; word-break: break-all; }
+  .packages-label { font-size: 12px; color: #666; margin-bottom: 6px; }
+  .packages { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1rem; }
+  .pkg-badge { font-size: 11px; padding: 3px 8px; background: #f5f5f5; border: 1px solid #e5e5e5; border-radius: 8px; color: #666; }
+  .url-section { border-top: 1px solid #e5e5e5; padding-top: 12px; }
+  .url-label { font-size: 12px; color: #666; margin-bottom: 4px; }
+  .url-value { font-size: 13px; font-weight: 500; color: #185fa5; word-break: break-all; }
+  .error-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .error-icon { font-size: 18px; color: #e24b4a; }
+  .error-label { font-size: 15px; font-weight: 500; }
+  .error-msg { font-size: 13px; color: #666; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+</style>
+</head>
+<body>
+
+<p class="subtitle">자연어로 개발환경을 요청하세요</p>
+<h1>DevSpace AI</h1>
+
+<div class="card">
+  <label>사용자 ID</label>
+  <input type="text" id="userId" value="user1" placeholder="예: user1" />
+
+  <label>환경 요청</label>
+  <textarea id="userInput" placeholder="예: Python FastAPI PostgreSQL 환경 만들어줘"></textarea>
+
+  <div class="presets">
+    <button class="preset-btn" onclick="usePreset('Python FastAPI PostgreSQL 환경 만들어줘')">Python FastAPI</button>
+    <button class="preset-btn" onclick="usePreset('Node.js 20 백엔드 개발 환경')">Node.js 백엔드</button>
+    <button class="preset-btn" onclick="usePreset('PyTorch GPU 환경 만들어줘')">PyTorch GPU</button>
+    <button class="preset-btn" onclick="usePreset('React 프론트엔드 개발 환경')">React 프론트엔드</button>
+  </div>
+
+  <button class="submit-btn" id="submitBtn" onclick="generateEnv()">환경 생성하기 →</button>
+</div>
+
+<div class="loading" id="loadingSection">
+  <div class="loading-dot"></div>
+  <p class="loading-text" id="loadingText">LLM 분석 중...</p>
+</div>
+
+<div class="result" id="resultSection">
+  <p class="result-title">생성 결과</p>
+
+  <div class="card" id="successCard" style="display:none;">
+    <div class="success-header">
+      <i class="ti ti-circle-check success-icon"></i>
+      <span class="success-label">환경 생성 성공</span>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">이미지</div><div class="metric-value" id="resImage">-</div></div>
+      <div class="metric"><div class="metric-label">CPU</div><div class="metric-value" id="resCpu">-</div></div>
+      <div class="metric"><div class="metric-label">메모리</div><div class="metric-value" id="resMemory">-</div></div>
+      <div class="metric"><div class="metric-label">GPU</div><div class="metric-value" id="resGpu">-</div></div>
+    </div>
+    <p class="packages-label">패키지</p>
+    <div class="packages" id="resPackages"></div>
+    <div class="url-section">
+      <p class="url-label">접속 URL</p>
+      <p class="url-value" id="resUrl">-</p>
+    </div>
+  </div>
+
+  <div class="card" id="errorCard" style="display:none;">
+    <div class="error-header">
+      <i class="ti ti-alert-circle error-icon"></i>
+      <span class="error-label">오류 발생</span>
+    </div>
+    <p class="error-msg" id="errorMsg">-</p>
+  </div>
+</div>
+
+<script>
+function usePreset(text) {
+  document.getElementById('userInput').value = text;
+}
+
+async function generateEnv() {
+  const userInput = document.getElementById('userInput').value.trim();
+  const userId = document.getElementById('userId').value.trim() || 'user1';
+  if (!userInput) { alert('환경 요청을 입력해주세요.'); return; }
+
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('loadingSection').style.display = 'block';
+  document.getElementById('resultSection').style.display = 'none';
+  document.getElementById('loadingText').textContent = 'LLM 분석 중...';
+  setTimeout(() => { document.getElementById('loadingText').textContent = 'Argo 파이프라인 실행 중...'; }, 1500);
+
+  try {
+    const response = await fetch('http://localhost:8000/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_input: userInput, user_id: userId })
+    });
+    const data = await response.json();
+    document.getElementById('loadingSection').style.display = 'none';
+    document.getElementById('resultSection').style.display = 'block';
+
+    if (response.ok) {
+      document.getElementById('successCard').style.display = 'block';
+      document.getElementById('errorCard').style.display = 'none';
+      const c = data.config;
+      document.getElementById('resImage').textContent = c.image || '-';
+      document.getElementById('resCpu').textContent = c.cpu ? c.cpu + ' 코어' : '-';
+      document.getElementById('resMemory').textContent = c.memory || '-';
+      document.getElementById('resGpu').textContent = c.gpu ? 'GPU ' + c.gpuCount + '개' : '없음';
+      document.getElementById('resUrl').textContent = data.message || '-';
+      const pkgs = document.getElementById('resPackages');
+      pkgs.innerHTML = '';
+      (c.packages || []).forEach(p => {
+        const b = document.createElement('span');
+        b.className = 'pkg-badge';
+        b.textContent = p;
+        pkgs.appendChild(b);
+      });
+      if (!c.packages || !c.packages.length) pkgs.innerHTML = '<span class="pkg-badge">없음</span>';
+    } else {
+      document.getElementById('successCard').style.display = 'none';
+      document.getElementById('errorCard').style.display = 'block';
+      document.getElementById('errorMsg').textContent = data.detail || '알 수 없는 오류';
+    }
+  } catch(e) {
+    document.getElementById('loadingSection').style.display = 'none';
+    document.getElementById('resultSection').style.display = 'block';
+    document.getElementById('successCard').style.display = 'none';
+    document.getElementById('errorCard').style.display = 'block';
+    document.getElementById('errorMsg').textContent = 'API 서버에 연결할 수 없습니다. FastAPI 서버가 실행 중인지 확인해주세요.';
+  }
+  document.getElementById('submitBtn').disabled = false;
+}
+</script>
+</body>
+</html>

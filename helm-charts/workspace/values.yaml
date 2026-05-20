@@ -1,7 +1,6 @@
-image: "ubuntu:22.04"
-
-cpu: "2"
-memory: "2Gi"
+image: "codercom/code-server:latest"
+cpu: "1"
+memory: "1Gi"
 gpu: false
 gpuCount: 0
 
