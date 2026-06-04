@@ -14,7 +14,16 @@ spec:
         autoscaling.knative.dev/scale-to-zero-pod-retention-period: "{{ .Values.knative.idleTimeout }}"
     spec:
       containers:
-        - image: {{ .Values.image }}
+        - image: codercom/code-server:latest
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              {{- if .Values.packages }}
+              echo "패키지 설치 중..."
+              sudo apt-get update -qq && sudo apt-get install -y python3 python3-pip -qq
+              pip3 install {{ join " " .Values.packages }}
+              {{- end }}
+              exec /usr/bin/entrypoint.sh --bind-addr 0.0.0.0:8080 /home/coder/workspace
           env:
             - name: PASSWORD
               value: "devspace1234"
@@ -23,9 +32,7 @@ spec:
               cpu: {{ .Values.cpu }}
               memory: {{ .Values.memory }}
           ports:
-            {{- range .Values.ports }}
-            - containerPort: {{ . }}
-            {{- end }}
+            - containerPort: 8080
           volumeMounts:
             - name: workspace-data
               mountPath: /home/coder/workspace
