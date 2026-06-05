@@ -80,10 +80,10 @@ async def generate_environment(request: EnvironmentRequest):
             "argo", "submit",
             "--from", "workflowtemplate/devspace-pipeline",
             "-n", "argo",
-            "-p", f"userId={request.user_id}",
-            "-p", f"image={config['image']}",
-            "-p", f"cpu={config['cpu']}",
-            "-p", f"memory={config['memory']}",
+            "--parameter", f"userId={request.user_id}",
+            "--parameter", f"image={config['image']}",
+            "--parameter", f"cpu={config['cpu']}",
+            "--parameter", f"memory=1Gi",
         ]
         result = subprocess.run(argo_cmd, capture_output=True, text=True)
         if result.returncode != 0:

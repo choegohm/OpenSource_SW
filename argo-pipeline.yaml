@@ -15,6 +15,8 @@ spec:
         value: "2"
       - name: memory
         value: "2Gi"
+      - name: packages
+        value: ""
 
   templates:
     - name: main-pipeline
@@ -35,7 +37,20 @@ spec:
           cp /helm-chart/* /tmp/helm-chart/
           mkdir -p /tmp/helm-chart/templates
           cp /helm-templates/* /tmp/helm-chart/templates/
-          helm upgrade --install             ws-{{workflow.parameters.userId}}             /tmp/helm-chart             --namespace workspaces             --set userId={{workflow.parameters.userId}}             --set image={{workflow.parameters.image}}             --set cpu={{workflow.parameters.cpu}}             --set memory={{workflow.parameters.memory}}             --create-namespace             --wait             --timeout 120s
+          helm upgrade --install \
+            ws-{{workflow.parameters.userId}} \
+            /tmp/helm-chart \
+            --namespace workspaces \
+            --set userId={{workflow.parameters.userId}} \
+            --set image={{workflow.parameters.image}} \
+            --set cpu={{workflow.parameters.cpu}} \
+            --set memory={{workflow.parameters.memory}} \
+            --set packages[0]=$(echo {{workflow.parameters.packages}} | cut -d',' -f1) \
+            --set packages[1]=$(echo {{workflow.parameters.packages}} | cut -d',' -f2) \
+            --set packages[2]=$(echo {{workflow.parameters.packages}} | cut -d',' -f3) \
+            --create-namespace \
+            --wait \
+            --timeout 120s
         volumeMounts:
           - name: helm-chart
             mountPath: /helm-chart
