@@ -78,6 +78,7 @@ async def generate_environment(request: EnvironmentRequest):
     try:
         argo_cmd = [
             "argo", "submit",
+            f"--from=workflowtemplate/devspace-pipeline",
             "--from", "workflowtemplate/devspace-pipeline",
             "-n", "argo",
             "--parameter", f"userId={request.user_id}",
